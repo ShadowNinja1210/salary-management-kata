@@ -1,6 +1,68 @@
-import { calculateNetSalary, calculateTDS } from "@/lib/salary-service";
+import {
+  calculateNetSalary,
+  calculateTDS,
+  calculateSalary,
+} from "@/lib/salary-service";
 
 describe("Salary calculations", () => {
+  describe("calculateSalary", () => {
+    it("calculates salary with string gross for India", () => {
+      const result = calculateSalary("1000", "India");
+      expect(result.gross).toBe("1000.00");
+      expect(result.tds).toBe("100.00");
+      expect(result.net).toBe("900.00");
+    });
+
+    it("calculates salary with number gross for India", () => {
+      const result = calculateSalary(1000, "India");
+      expect(result.gross).toBe("1000.00");
+      expect(result.tds).toBe("100.00");
+      expect(result.net).toBe("900.00");
+    });
+
+    it("calculates salary for USA with case-insensitive match", () => {
+      const result = calculateSalary(1000, "USA");
+      expect(result.gross).toBe("1000.00");
+      expect(result.tds).toBe("120.00");
+      expect(result.net).toBe("880.00");
+    });
+
+    it("calculates salary for United States", () => {
+      const result = calculateSalary(1000, "United States");
+      expect(result.gross).toBe("1000.00");
+      expect(result.tds).toBe("120.00");
+      expect(result.net).toBe("880.00");
+    });
+
+    it("calculates salary for US", () => {
+      const result = calculateSalary(1000, "US");
+      expect(result.gross).toBe("1000.00");
+      expect(result.tds).toBe("120.00");
+      expect(result.net).toBe("880.00");
+    });
+
+    it("calculates salary with case-insensitive india", () => {
+      const result = calculateSalary(1000, "INDIA");
+      expect(result.gross).toBe("1000.00");
+      expect(result.tds).toBe("100.00");
+      expect(result.net).toBe("900.00");
+    });
+
+    it("calculates salary for other countries with 0% TDS", () => {
+      const result = calculateSalary(1000, "Spain");
+      expect(result.gross).toBe("1000.00");
+      expect(result.tds).toBe("0.00");
+      expect(result.net).toBe("1000.00");
+    });
+
+    it("handles decimal salaries correctly", () => {
+      const result = calculateSalary(1000.5, "India");
+      expect(result.gross).toBe("1000.50");
+      expect(result.tds).toBe("100.05");
+      expect(result.net).toBe("900.45");
+    });
+  });
+
   describe("calculateTDS", () => {
     it("calculates TDS for India (10%)", () => {
       const tds = calculateTDS(1000, "India");

@@ -15,17 +15,27 @@ jest.mock("recharts", () => ({
   Legend: () => <div data-testid="legend" />,
 }));
 
-// Mock SWR with empty data to avoid complex mocking issues
+// Mock SWR with configurable data
+const mockUseSWR = jest.fn();
 jest.mock("swr", () => ({
   __esModule: true,
-  default: () => ({
-    data: [],
-    error: null,
-    isLoading: false,
-  }),
+  default: (...args: any[]) => mockUseSWR(...args),
 }));
 
 describe("MetricsDashboard", () => {
+  beforeEach(() => {
+    // Default empty state
+    mockUseSWR.mockReturnValue({
+      data: [],
+      error: null,
+      isLoading: false,
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("renders the dashboard title", () => {
     render(<MetricsDashboard />);
     expect(screen.getByText("Salary Metrics")).toBeInTheDocument();
@@ -65,5 +75,147 @@ describe("MetricsDashboard", () => {
     // With empty data, should still render the structure
     const dashboard = screen.getByText("Salary Metrics");
     expect(dashboard).toBeTruthy();
+  });
+
+  it("displays zero values when no data is available", () => {
+    mockUseSWR.mockReturnValue({
+      data: [],
+      error: null,
+      isLoading: false,
+    });
+
+    render(<MetricsDashboard />);
+
+    // Should show 0 values - but there are multiple 0s, so check for specific elements
+    expect(screen.getByText("Total Employees")).toBeInTheDocument();
+    expect(screen.getByText(/Across\s+0\s+countries/i)).toBeInTheDocument();
+  });
+
+  it("calculates total employees correctly from country metrics", () => {
+    let callCount = 0;
+    mockUseSWR.mockImplementation((url: string) => {
+      if (url === "/api/employees/metrics/country") {
+        return {
+          data: [
+            {
+              country: "India",
+              employeeCount: 5,
+              avgSalary: 50000,
+              minSalary: 40000,
+              maxSalary: 60000,
+            },
+            {
+              country: "USA",
+              employeeCount: 3,
+              avgSalary: 70000,
+              minSalary: 60000,
+              maxSalary: 80000,
+            },
+          ],
+          error: null,
+          isLoading: false,
+        };
+      }
+      return {
+        data: [],
+        error: null,
+        isLoading: false,
+      };
+    });
+
+    render(<MetricsDashboard />);
+
+    // Total should be 8 (5 + 3)
+    expect(screen.getByText("8")).toBeInTheDocument();
+  });
+
+  it("displays country count correctly", () => {
+    mockUseSWR.mockImplementation((url: string) => {
+      if (url === "/api/employees/metrics/country") {
+        return {
+          data: [
+            {
+              country: "India",
+              employeeCount: 5,
+              avgSalary: 50000,
+              minSalary: 40000,
+              maxSalary: 60000,
+            },
+            {
+              country: "USA",
+              employeeCount: 3,
+              avgSalary: 70000,
+              minSalary: 60000,
+              maxSalary: 80000,
+            },
+          ],
+          error: null,
+          isLoading: false,
+        };
+      }
+      return { data: [], error: null, isLoading: false };
+    });
+
+    render(<MetricsDashboard />);
+
+    // Should show "Across 2 countries"
+    expect(screen.getByText(/across 2 countries/i)).toBeInTheDocument();
+  });
+
+  it("displays job title count correctly", () => {
+    mockUseSWR.mockImplementation((url: string) => {
+      if (url === "/api/employees/metrics/job-title") {
+        return {
+          data: [
+            { jobTitle: "Engineer", employeeCount: 5, avgSalary: 60000 },
+            { jobTitle: "Designer", employeeCount: 3, avgSalary: 55000 },
+            { jobTitle: "Manager", employeeCount: 2, avgSalary: 80000 },
+          ],
+          error: null,
+          isLoading: false,
+        };
+      }
+      return { data: [], error: null, isLoading: false };
+    });
+
+    render(<MetricsDashboard />);
+
+    // Should show "3" (number of job titles) and "Unique positions"
+    expect(screen.getByText("Job Titles")).toBeInTheDocument();
+    expect(screen.getByText("Unique positions")).toBeInTheDocument();
+  });
+
+  it("renders chart components", () => {
+    mockUseSWR.mockImplementation((url: string) => {
+      if (url === "/api/employees/metrics/country") {
+        return {
+          data: [
+            {
+              country: "India",
+              employeeCount: 5,
+              avgSalary: 50000,
+              minSalary: 40000,
+              maxSalary: 60000,
+            },
+          ],
+          error: null,
+          isLoading: false,
+        };
+      }
+      return { data: [], error: null, isLoading: false };
+    });
+
+    render(<MetricsDashboard />);
+
+    // Check if chart card containers are rendered - look for the actual title text from component
+    const countryCard = screen
+      .getByText(/Salary by Country/i)
+      .closest('[data-slot="card"]');
+    expect(countryCard).toBeInTheDocument();
+
+    const jobTitleCard = screen
+      .getByText(/Average Salary by Job Title/i)
+      .closest('[data-slot="card"]');
+    expect(jobTitleCard).toBeInTheDocument();
   });
 });

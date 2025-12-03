@@ -139,29 +139,29 @@ npm run test:coverage
 
 ## Project Structure
 
-```
+```md
 salary-management-kata/
-├── app/                      # Next.js App Router
-│   ├── api/                  # API routes
-│   │   └── employees/        # Employee endpoints
-│   ├── layout.tsx            # Root layout
-│   └── page.tsx              # Home page
-├── components/               # React components
-│   ├── employee-form.tsx     # Employee create/edit form
-│   ├── employee-manager.tsx  # Main management component
-│   ├── employee-table.tsx    # Employee list table
-│   ├── metrics-dashboard.tsx # Metrics visualization
-│   └── ui/                   # shadcn/ui components
-├── lib/                      # Utilities
-│   ├── db.ts                 # Database client
-│   ├── salary-service.ts     # Salary calculations
-│   ├── types.ts              # TypeScript types
-│   └── validators.ts         # Zod schemas
-├── __tests__/                # Jest tests
-│   ├── salary.test.ts        # Salary calculation tests
-│   └── validators.test.ts    # Validation tests
-└── scripts/                  # Database scripts
-    └── 001-create-employees-table.sql
+├── app/ # Next.js App Router
+│ ├── api/ # API routes
+│ │ └── employees/ # Employee endpoints
+│ ├── layout.tsx # Root layout
+│ └── page.tsx # Home page
+├── components/ # React components
+│ ├── employee-form.tsx # Employee create/edit form
+│ ├── employee-manager.tsx # Main management component
+│ ├── employee-table.tsx # Employee list table
+│ ├── metrics-dashboard.tsx # Metrics visualization
+│ └── ui/ # shadcn/ui components
+├── lib/ # Utilities
+│ ├── db.ts # Database client
+│ ├── salary-service.ts # Salary calculations
+│ ├── types.ts # TypeScript types
+│ └── validators.ts # Zod schemas
+├── **tests**/ # Jest tests
+│ ├── salary.test.ts # Salary calculation tests
+│ └── validators.test.ts # Validation tests
+└── scripts/ # Database scripts
+└── 001-create-employees-table.sql
 ```
 
 ## Design Decisions
