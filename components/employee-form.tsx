@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -13,49 +13,89 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { Employee, CreateEmployeeInput } from "@/lib/types"
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Employee, CreateEmployeeInput } from "@/lib/types";
 
 interface EmployeeFormProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  employee?: Employee | null
-  onSubmit: (data: CreateEmployeeInput) => Promise<void>
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  employee?: Employee | null;
+  onSubmit: (data: CreateEmployeeInput) => Promise<void>;
 }
 
-const COUNTRIES = ["India", "USA", "UK", "Canada", "Germany", "Australia", "France", "Japan"]
+const COUNTRIES = [
+  "India",
+  "USA",
+  "UK",
+  "Canada",
+  "Germany",
+  "Australia",
+  "France",
+  "Japan",
+];
 
-export function EmployeeForm({ open, onOpenChange, employee, onSubmit }: EmployeeFormProps) {
-  const [loading, setLoading] = useState(false)
+export function EmployeeForm({
+  open,
+  onOpenChange,
+  employee,
+  onSubmit,
+}: EmployeeFormProps) {
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CreateEmployeeInput>({
-    fullName: employee?.fullName || "",
-    jobTitle: employee?.jobTitle || "",
-    country: employee?.country || "",
-    salary: employee?.salary ? Number(employee.salary) : 0,
-  })
+    fullName: "",
+    jobTitle: "",
+    country: "",
+    salary: 0,
+  });
+
+  useEffect(() => {
+    if (employee) {
+      setFormData({
+        fullName: employee.fullName,
+        jobTitle: employee.jobTitle,
+        country: employee.country,
+        salary:
+          typeof employee.salary === "string"
+            ? Number.parseFloat(employee.salary)
+            : employee.salary,
+      });
+    } else if (!open) {
+      setFormData({ fullName: "", jobTitle: "", country: "", salary: 0 });
+    }
+  }, [employee, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     try {
-      await onSubmit(formData)
-      onOpenChange(false)
-      setFormData({ fullName: "", jobTitle: "", country: "", salary: 0 })
+      await onSubmit(formData);
+      onOpenChange(false);
+      setFormData({ fullName: "", jobTitle: "", country: "", salary: 0 });
     } catch (error) {
-      console.error("Error submitting form:", error)
+      console.error("Error submitting form:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] bg-card border-border">
         <DialogHeader>
-          <DialogTitle>{employee ? "Edit Employee" : "Add Employee"}</DialogTitle>
+          <DialogTitle>
+            {employee ? "Edit Employee" : "Add Employee"}
+          </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            {employee ? "Update employee details below." : "Enter the new employee details below."}
+            {employee
+              ? "Update employee details below."
+              : "Enter the new employee details below."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -65,7 +105,9 @@ export function EmployeeForm({ open, onOpenChange, employee, onSubmit }: Employe
               <Input
                 id="fullName"
                 value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, fullName: e.target.value })
+                }
                 placeholder="John Doe"
                 className="bg-secondary border-border"
                 required
@@ -76,7 +118,9 @@ export function EmployeeForm({ open, onOpenChange, employee, onSubmit }: Employe
               <Input
                 id="jobTitle"
                 value={formData.jobTitle}
-                onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, jobTitle: e.target.value })
+                }
                 placeholder="Software Engineer"
                 className="bg-secondary border-border"
                 required
@@ -84,7 +128,12 @@ export function EmployeeForm({ open, onOpenChange, employee, onSubmit }: Employe
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="country">Country</Label>
-              <Select value={formData.country} onValueChange={(value) => setFormData({ ...formData, country: value })}>
+              <Select
+                value={formData.country}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, country: value })
+                }
+              >
                 <SelectTrigger className="bg-secondary border-border">
                   <SelectValue placeholder="Select a country" />
                 </SelectTrigger>
@@ -103,7 +152,13 @@ export function EmployeeForm({ open, onOpenChange, employee, onSubmit }: Employe
                 id="salary"
                 type="number"
                 value={formData.salary || ""}
-                onChange={(e) => setFormData({ ...formData, salary: Number.parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({
+                    ...formData,
+                    salary: value === "" ? 0 : Number.parseFloat(value),
+                  });
+                }}
                 placeholder="50000"
                 className="bg-secondary border-border"
                 required
@@ -113,15 +168,23 @@ export function EmployeeForm({ open, onOpenChange, employee, onSubmit }: Employe
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
               {loading ? "Saving..." : employee ? "Update" : "Add"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

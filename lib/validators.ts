@@ -28,7 +28,7 @@ export function validateEmployee(data: CreateEmployeeInput): { valid: boolean; e
   if (!data.country || data.country.trim().length === 0) {
     return { valid: false, error: "Country is required" }
   }
-  if (typeof data.salary !== "number" || data.salary < 0) {
+  if (typeof data.salary !== "number" || data.salary <= 0 || isNaN(data.salary)) {
     return { valid: false, error: "Salary must be a positive number" }
   }
   return { valid: true }

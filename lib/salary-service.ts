@@ -34,3 +34,16 @@ export function calculateNetSalary(grossSalary: number, country: string): number
   const tdsAmount = grossSalary * tdsRate
   return grossSalary - tdsAmount
 }
+
+export function calculateTDS(grossSalary: number, country: string): number {
+  let tdsRate = 0
+
+  if (country === "India") {
+    tdsRate = 0.1 // 10%
+  } else if (country === "USA" || /^united ?states$/i.test(country)) {
+    tdsRate = 0.12 // 12%
+  }
+  // Others: 0%
+
+  return grossSalary * tdsRate
+}
