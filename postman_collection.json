@@ -1,0 +1,411 @@
+{
+  "info": {
+    "name": "Salary Management Kata API",
+    "description": "Complete API collection for employee salary management system with CRUD operations, pagination, search, filters, and metrics.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "employeeId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"John Doe\",\n  \"jobTitle\": \"Software Engineer\",\n  \"country\": \"India\",\n  \"grossSalary\": 100000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"]
+            },
+            "description": "Create a new employee record. TDS is automatically calculated based on country:\n- India: 10%\n- USA/United States: 12%\n- Others: 0%"
+          },
+          "response": [
+            {
+              "name": "Success - India Employee",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"John Doe\",\n  \"jobTitle\": \"Software Engineer\",\n  \"country\": \"India\",\n  \"grossSalary\": 100000\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/employees",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["employees"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 1,\n  \"fullName\": \"John Doe\",\n  \"jobTitle\": \"Software Engineer\",\n  \"country\": \"India\",\n  \"grossSalary\": 100000,\n  \"tds\": 10000,\n  \"netSalary\": 90000,\n  \"createdAt\": \"2024-01-15T10:30:00.000Z\",\n  \"updatedAt\": \"2024-01-15T10:30:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "List All Employees (Basic)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"]
+            },
+            "description": "Get all employees with default pagination (page 1, limit 10)."
+          },
+          "response": []
+        },
+        {
+          "name": "List Employees with Pagination",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get employees with custom pagination. Max limit is 100."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?search=engineer",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "engineer",
+                  "description": "Search across fullName, jobTitle, and country (case-insensitive)"
+                }
+              ]
+            },
+            "description": "Search employees by keyword across fullName, jobTitle, and country fields."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Country",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?country=India",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"],
+              "query": [
+                {
+                  "key": "country",
+                  "value": "India",
+                  "description": "Filter by exact country name"
+                }
+              ]
+            },
+            "description": "Filter employees by country."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Job Title",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?jobTitle=Software Engineer",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"],
+              "query": [
+                {
+                  "key": "jobTitle",
+                  "value": "Software Engineer",
+                  "description": "Filter by exact job title"
+                }
+              ]
+            },
+            "description": "Filter employees by job title."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Salary Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?minSalary=50000&maxSalary=150000",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"],
+              "query": [
+                {
+                  "key": "minSalary",
+                  "value": "50000",
+                  "description": "Minimum gross salary"
+                },
+                {
+                  "key": "maxSalary",
+                  "value": "150000",
+                  "description": "Maximum gross salary"
+                }
+              ]
+            },
+            "description": "Filter employees by salary range."
+          },
+          "response": []
+        },
+        {
+          "name": "Sort by Salary (Descending)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?sortBy=salary&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"],
+              "query": [
+                {
+                  "key": "sortBy",
+                  "value": "salary",
+                  "description": "Sort field: id, fullName, jobTitle, country, salary, createdAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order: asc or desc"
+                }
+              ]
+            },
+            "description": "Sort employees by any field. Available fields: id, fullName, jobTitle, country, salary, createdAt."
+          },
+          "response": []
+        },
+        {
+          "name": "Combined Query (Search + Filter + Sort)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?search=engineer&country=India&minSalary=80000&sortBy=salary&sortOrder=desc&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "engineer"
+                },
+                {
+                  "key": "country",
+                  "value": "India"
+                },
+                {
+                  "key": "minSalary",
+                  "value": "80000"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "salary"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Combine search, filters, sorting, and pagination in a single request."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}"]
+            },
+            "description": "Retrieve a single employee by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"John Doe\",\n  \"jobTitle\": \"Senior Software Engineer\",\n  \"country\": \"USA\",\n  \"grossSalary\": 150000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}"]
+            },
+            "description": "Update an existing employee. TDS and net salary are recalculated automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Employee",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "{{employeeId}}"]
+            },
+            "description": "Delete an employee by ID."
+          },
+          "response": []
+        }
+      ],
+      "description": "Employee CRUD operations with pagination, search, filters, and sorting."
+    },
+    {
+      "name": "Metrics",
+      "item": [
+        {
+          "name": "Country Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/metrics/country",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "metrics", "country"]
+            },
+            "description": "Get salary statistics grouped by country (count, avg, min, max)."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/employees/metrics/country",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["employees", "metrics", "country"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"country\": \"India\",\n    \"employeeCount\": 25,\n    \"avgSalary\": 85000.5,\n    \"minSalary\": 50000,\n    \"maxSalary\": 120000\n  },\n  {\n    \"country\": \"USA\",\n    \"employeeCount\": 15,\n    \"avgSalary\": 145000.75,\n    \"minSalary\": 100000,\n    \"maxSalary\": 200000\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Job Title Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees/metrics/job-title",
+              "host": ["{{baseUrl}}"],
+              "path": ["employees", "metrics", "job-title"]
+            },
+            "description": "Get average salary grouped by job title."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/employees/metrics/job-title",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["employees", "metrics", "job-title"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"jobTitle\": \"Software Engineer\",\n    \"employeeCount\": 30,\n    \"avgSalary\": 95000.25\n  },\n  {\n    \"jobTitle\": \"Senior Software Engineer\",\n    \"employeeCount\": 10,\n    \"avgSalary\": 145000.5\n  }\n]"
+            }
+          ]
+        }
+      ],
+      "description": "Salary metrics and analytics endpoints."
+    }
+  ]
+}

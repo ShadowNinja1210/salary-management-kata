@@ -48,66 +48,84 @@ export async function GET(request: NextRequest) {
       : "createdAt";
     const actualSortOrder = sortOrder.toLowerCase() === "asc" ? "ASC" : "DESC";
 
-    // Build WHERE conditions dynamically
-    const conditions: string[] = [];
-    const values: any[] = [];
+    // Fetch all employees - we'll filter and sort in memory
+    // This works reliably with Neon's template literal API
+    const allEmployees = await sql`
+      SELECT id, "fullName", "jobTitle", country, salary, "createdAt"
+      FROM "Employee"
+    `;
+
+    // Apply filters in JavaScript
+    let filteredEmployees = [...allEmployees];
 
     if (search) {
-      conditions.push(
-        `("fullName" ILIKE $${values.length + 1} OR "jobTitle" ILIKE $${
-          values.length + 1
-        } OR country ILIKE $${values.length + 1})`
+      const searchLower = search.toLowerCase();
+      filteredEmployees = filteredEmployees.filter(
+        (emp: any) =>
+          (emp.fullName && emp.fullName.toLowerCase().includes(searchLower)) ||
+          (emp.jobTitle && emp.jobTitle.toLowerCase().includes(searchLower)) ||
+          (emp.country && emp.country.toLowerCase().includes(searchLower))
       );
-      values.push(`%${search}%`);
     }
 
     if (country) {
-      conditions.push(`country ILIKE $${values.length + 1}`);
-      values.push(country);
+      filteredEmployees = filteredEmployees.filter(
+        (emp: any) =>
+          emp.country && emp.country.toLowerCase() === country.toLowerCase()
+      );
     }
 
     if (jobTitle) {
-      conditions.push(`"jobTitle" ILIKE $${values.length + 1}`);
-      values.push(jobTitle);
+      filteredEmployees = filteredEmployees.filter(
+        (emp: any) =>
+          emp.jobTitle && emp.jobTitle.toLowerCase() === jobTitle.toLowerCase()
+      );
     }
 
     if (minSalary !== null) {
-      conditions.push(`salary >= $${values.length + 1}`);
-      values.push(minSalary);
+      filteredEmployees = filteredEmployees.filter(
+        (emp: any) => Number(emp.salary) >= minSalary
+      );
     }
 
     if (maxSalary !== null) {
-      conditions.push(`salary <= $${values.length + 1}`);
-      values.push(maxSalary);
+      filteredEmployees = filteredEmployees.filter(
+        (emp: any) => Number(emp.salary) <= maxSalary
+      );
     }
 
-    const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    // Apply sorting in JavaScript
+    filteredEmployees.sort((a: any, b: any) => {
+      let aVal = a[actualSortBy];
+      let bVal = b[actualSortBy];
 
-    // Build complete SQL queries as strings
-    const countQueryString = `SELECT COUNT(*) as count FROM "Employee" ${whereClause}`;
-    const dataQueryString = `
-      SELECT id, "fullName", "jobTitle", country, salary, "createdAt"
-      FROM "Employee"
-      ${whereClause}
-      ORDER BY "${actualSortBy}" ${actualSortOrder}
-      LIMIT $${values.length + 1} OFFSET $${values.length + 2}
-    `;
+      // Handle numeric comparison for salary
+      if (actualSortBy === "salary") {
+        aVal = Number(aVal);
+        bVal = Number(bVal);
+      }
 
-    // Execute queries using Neon's raw query function
-    // Since Neon's template literal doesn't support dynamic WHERE clauses well,
-    // we need to execute raw SQL
-    const countResult: any[] = await (sql as any)(countQueryString, values);
-    const total = parseInt(countResult[0].count, 10);
+      // Handle string comparison
+      if (typeof aVal === "string") {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+      }
 
-    const employees: any[] = await (sql as any)(dataQueryString, [
-      ...values,
-      limit,
-      offset,
-    ]);
+      if (actualSortOrder === "ASC") {
+        return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+      } else {
+        return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+      }
+    });
+
+    // Get total count
+    const total = filteredEmployees.length;
+
+    // Apply pagination
+    const paginatedEmployees = filteredEmployees.slice(offset, offset + limit);
 
     // Add net salary calculation to each employee
-    const employeesWithNetSalary = employees.map((emp: any) => ({
+    const employeesWithNetSalary = paginatedEmployees.map((emp) => ({
       ...emp,
       netSalary: calculateNetSalary(Number(emp.salary), emp.country),
     }));

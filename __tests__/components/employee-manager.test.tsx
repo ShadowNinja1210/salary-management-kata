@@ -69,7 +69,15 @@ describe("EmployeeManager", () => {
   beforeEach(() => {
     global.fetch = jest.fn();
     mockUseSWR.mockReturnValue({
-      data: mockEmployees,
+      data: {
+        data: mockEmployees,
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 2,
+          totalPages: 1,
+        },
+      },
       error: null,
       mutate: jest.fn(),
     });
